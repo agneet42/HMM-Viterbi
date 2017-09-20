@@ -94,13 +94,16 @@ path_array = []
 temp = []
 value_array = []
 
+# Initial
 for i in range(0,5):
 	path_array.append([observed_class_arr[0][i]])
 	val = observed_class_arr[0][i] 
 	val1 = init_arr[val-1][1]
 	value_array.append([((val1) * (observed_probability_arr[0][i]))])
 
-for i in range(0,len(observed_class_arr)-1):
+# 1 to 2
+
+for i in range(0,len(observed_class_arr)):
 	temp1 = np.asarray(path_array)
 	temp2 = np.repeat(temp1,5,axis=0)
 	path_array = temp2.tolist() 
@@ -122,4 +125,57 @@ for i in range(0,len(observed_class_arr)-1):
 	value_array.sort(key=lambda x: x[0],reverse=True)
 	path_array = path_array[:5]
 	value_array = value_array[:5]
+	break
 
+# Rest
+
+for i in range(1,len(observed_class_arr)-1):
+	temp1 = np.asarray(path_array)
+	temp2 = np.repeat(temp1,5,axis=0)
+	path_array = temp2.tolist() 
+	temp1 = np.asarray(value_array)
+	temp2 = np.repeat(temp1,5,axis=0)
+	value_array = temp2.tolist() 
+	temp_path = []
+	temp_val = []
+	for y in range(0,5):
+		val = observed_class_arr[i][y]
+		for x in range(0,5):
+			val1 = observed_class_arr[i+1][x]
+			trans_temp = transitionMatrix[val-1][val1-1]
+			val2 = observed_probability_arr[i+1][x]
+			ans = trans_temp * val2
+			temp_path.append([val,val1])
+			temp_val.append([ans])
+	
+	count = 0
+	restore = []
+	for y in range(0,len(path_array)):
+		to_check = path_array[y][-1]
+		for loop in range(0,len(temp_path)):
+			to_check_1 = temp_path[loop][0]
+			to_value_1 = temp_val[loop][0]
+			if(to_check == to_check_1 and to_check_1 != -1):
+				path_array[y].append(temp_path[loop][1])
+				value_array[y][0] = value_array[y][0] * to_value_1
+				restore.append(temp_path[loop][0])
+				temp_path[loop][0] = -1
+				count = count + 1
+				break
+		if(count==5):
+			count = 0
+			for a in restore:
+				for arr in temp_path:
+					if(arr[0] == -1):
+						arr[0] = a
+						break
+			restore = [] 
+	path_array = [path_array for (value_array,path_array) in sorted(zip(value_array,path_array),reverse=True,key=lambda pair: pair[0])]
+	value_array.sort(key=lambda x: x[0],reverse=True)
+	path_array = path_array[:5]
+	value_array = value_array[:5]
+	temp_path = []
+	temp_val = []
+
+for i in range(0,len(path_array)):
+	print(path_array[i],value_array[i])
